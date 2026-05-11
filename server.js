@@ -6,10 +6,6 @@ const webhookRoutes = require("./routes/webhook");
 
 const app = express();
 
-/*
-IMPORTANT:
-Need raw body for Shopify HMAC validation
-*/
 app.use(
   express.json({
     verify: (req, res, buf) => {
@@ -24,7 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/webhook", webhookRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);

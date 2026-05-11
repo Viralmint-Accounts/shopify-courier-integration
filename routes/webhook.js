@@ -15,7 +15,7 @@ const {
 const router = express.Router();
 
 /*
-Webhook Verification
+VERIFY SHOPIFY WEBHOOK
 */
 function verifyShopifyWebhook(req) {
   const hmac = req.get("X-Shopify-Hmac-Sha256");
@@ -32,12 +32,12 @@ function verifyShopifyWebhook(req) {
 }
 
 /*
-POST /api/webhook
+WEBHOOK
 */
 router.post("/", async (req, res) => {
   try {
     /*
-    Verify webhook
+    Verify Shopify Webhook
     */
     const isValid = verifyShopifyWebhook(req);
 
@@ -49,53 +49,61 @@ router.post("/", async (req, res) => {
 
     console.log("=================================");
     console.log("NEW ORDER RECEIVED");
-    console.log("Order:", order.name);
+    console.log("Order:", order.order_number);
     console.log("=================================");
 
     /*
-    Step 1: Generate Token
+    STEP 1: LOGIN
     */
     const token = await getToken();
 
     console.log("TOKEN GENERATED");
 
     /*
-    Step 2: Create Shipment
+    STEP 2: CREATE SHIPMENT
     */
-    const shipmentResponse = await createShipment(
-      order,
-      token
-    );
+    const shipmentResponse =
+      await createShipment(order, token);
 
     console.log(
       "SHIPMENT RESPONSE:",
-      JSON.stringify(shipmentResponse, null, 2)
+      JSON.stringify(
+        shipmentResponse,
+        null,
+        2
+      )
     );
 
     /*
-    IMPORTANT:
-    Replace this according to actual API response
+    STEP 3: GET TRACKING NUMBER
     */
     const trackingNumber =
-      shipmentResponse?.AWBNo ||
-      shipmentResponse?.data?.AWBNo ||
-      shipmentResponse?.awb ||
-      shipmentResponse?.tracking_number;
+      shipmentResponse?.TrackingNo ||
+      shipmentResponse?.SmcsAwbNo ||
+      shipmentResponse?.AWBNo;
 
     if (!trackingNumber) {
       throw new Error(
-        "Tracking number not received from courier API"
+        "Tracking number not found"
       );
     }
 
-    console.log("TRACKING NUMBER:", trackingNumber);
+    console.log(
+      "TRACKING NUMBER:",
+      trackingNumber
+    );
 
     /*
-    Step 3: Fulfill Shopify Order
+    STEP 4: UPDATE SHOPIFY
     */
-    await fulfillOrder(order.id, trackingNumber);
+    await fulfillOrder(
+      order.id,
+      trackingNumber
+    );
 
-    console.log("SHOPIFY FULFILLMENT COMPLETED");
+    console.log(
+      "SHOPIFY FULFILLMENT COMPLETED"
+    );
 
     return res.status(200).json({
       success: true,
@@ -105,13 +113,15 @@ router.post("/", async (req, res) => {
     console.error("WEBHOOK ERROR");
 
     console.error(
-      error.response?.data || error.message
+      error.response?.data ||
+        error.message
     );
 
     return res.status(500).json({
       success: false,
       error:
-        error.response?.data || error.message,
+        error.response?.data ||
+        error.message,
     });
   }
 });

@@ -6,7 +6,7 @@ async function fulfillOrder(
 ) {
   try {
     /*
-    Get Fulfillment Orders
+    GET FULFILLMENT ORDER
     */
     const fulfillmentOrdersResponse =
       await axios.get(
@@ -24,7 +24,8 @@ async function fulfillOrder(
       );
 
     const fulfillmentOrders =
-      fulfillmentOrdersResponse.data
+      fulfillmentOrdersResponse
+        .data
         .fulfillment_orders;
 
     if (
@@ -40,7 +41,7 @@ async function fulfillOrder(
       fulfillmentOrders[0].id;
 
     /*
-    Create Fulfillment
+    CREATE FULFILLMENT
     */
     const fulfillmentResponse =
       await axios.post(
@@ -50,9 +51,11 @@ async function fulfillOrder(
             notify_customer: true,
 
             tracking_info: {
-              number: trackingNumber,
+              number:
+                trackingNumber,
 
-              company: "Seva Setu",
+              company:
+                "Seva Setu",
             },
 
             line_items_by_fulfillment_order:
@@ -76,11 +79,21 @@ async function fulfillOrder(
         }
       );
 
+    console.log(
+      "FULFILLMENT RESPONSE:",
+      JSON.stringify(
+        fulfillmentResponse.data,
+        null,
+        2
+      )
+    );
+
     return fulfillmentResponse.data;
   } catch (error) {
     console.error(
       "SHOPIFY FULFILLMENT ERROR:",
-      error.response?.data
+      error.response?.data ||
+        error.message
     );
 
     throw error;

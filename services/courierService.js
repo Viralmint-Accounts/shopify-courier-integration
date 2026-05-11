@@ -1,111 +1,129 @@
 const axios = require("axios");
 
-async function createShipment(order, token) {
+async function createShipment(
+  order,
+  token
+) {
   try {
-    const shipping = order.shipping_address;
+    const shipping =
+      order.shipping_address;
 
-    /*
-    Weight Logic
-    */
-    let totalWeight = 500;
+    const documentRef = String(
+      Date.now()
+    ).padStart(14, "0");
 
-    if (order.total_weight) {
-      totalWeight = order.total_weight;
-    }
+    console.log(
+      "DOCUMENT REF:",
+      documentRef
+    );
 
-    /*
-    State Mapping
-    Replace with dynamic mapping later
-    */
-    let stateId = "1";
+    const response =
+      await axios.post(
+        "https://customerapi.sevasetu.in/index.php/clientbooking_v5/insertbooking",
+        {
+          Data: [
+            {
+              data: {
+                ClientRefID:
+                  process.env
+                    .CLIENT_ID,
 
-    const response = await axios.post(
-      "https://customerapi.sevasetu.in/index.php/clientbookingv5/insertbooking",
-      {
-        Data: [
-          {
-            data: {
-              ClientRefID:
-                process.env.CLIENT_ID,
+                IsDP: "0",
 
-              IsDP: "0",
+                DocumentNoRef:
+                  documentRef,
 
-              ReceiverName:
-                shipping.name,
+                OrderNo:
+                  order.order_number,
 
-              DocumentNoRef:
-                order.order_number.toString(),
+                PickupPincode:
+                  process.env
+                    .PICKUP_PINCODE,
 
-              ToPincode:
-                shipping.zip,
+                ToPincode:
+                  shipping.zip,
 
-              TypeID: "2",
+                CodBooking: "0",
 
-              ServiceTypeID: "1",
+                TypeID: "2",
 
-              TravelBy: "1",
+                ServiceTypeID:
+                  "1",
 
-              Weight:
-                totalWeight.toString(),
+                TravelBy: "1",
 
-              Length: "2",
+                Weight: "500",
 
-              Width: "2",
+                Length: "2",
 
-              Height: "2",
+                Width: "2",
 
-              ValueRs:
-                order.total_price,
+                Height: "2",
 
-              ReceiverAddress:
-                shipping.address1,
+                ValueRs:
+                  order.total_price,
 
-              ReceiverCity:
-                shipping.city,
+                ReceiverName:
+                  shipping.name,
 
-              ReceiverState:
-                stateId,
+                ReceiverAddress:
+                  shipping.address1,
 
-              Area:
-                shipping.address2 || "",
+                ReceiverCity:
+                  shipping.city,
 
-              ReceiverMobile:
-                shipping.phone ||
-                "9999999999",
+                ReceiverState:
+                  "1",
 
-              ReceiverEmail:
-                order.email,
+                Area:
+                  shipping.city,
 
-              Remarks:
-                "Shopify Order",
+                ReceiverMobile:
+                  shipping.phone ||
+                  "9999999999",
 
-              UserID:
-                process.env.USER_ID,
+                ReceiverEmail:
+                  order.email,
 
-              PickupPincode:
-                process.env.PICKUP_PINCODE,
+                Remarks:
+                  "Shopify Order",
+
+                UserID:
+                  process.env
+                    .USER_ID,
+              },
             },
-          },
-        ],
-      },
-      {
-        headers: {
-          token: token,
-
-          clientid:
-            process.env.CLIENT_ID,
-
-          "Content-Type":
-            "application/json",
+          ],
         },
-      }
+        {
+          headers: {
+            token,
+
+            clientid:
+              process.env
+                .CLIENT_ID,
+
+            "Content-Type":
+              "application/json",
+          },
+        }
+      );
+
+    console.log(
+      "COURIER RESPONSE:",
+      JSON.stringify(
+        response.data,
+        null,
+        2
+      )
     );
 
     return response.data;
   } catch (error) {
     console.error(
       "COURIER API ERROR:",
-      error.response?.data
+      error.response?.data ||
+        error.message
     );
 
     throw error;
