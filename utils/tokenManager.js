@@ -4,18 +4,14 @@ async function getToken() {
   try {
     console.log("LOGIN API STARTED");
 
-    console.log("CLIENT_ID:", process.env.CLIENT_ID);
-
-    console.log("LOGIN_USERNAME:", process.env.LOGIN_USERNAME);
-
     const response = await axios.post(
-      "https://customerapi.sevasetu.in/index.php/clientbookingv5/login",
+      "https://customerapi.sevasetu.in/index.php/clientbooking_v5/login",
       {
         data: {
-          loginusername:
+          login_username:
             process.env.LOGIN_USERNAME,
 
-          loginpassword:
+          login_password:
             process.env.LOGIN_PASSWORD,
         },
       },
@@ -41,13 +37,8 @@ async function getToken() {
     return response.data.AuthToken;
   } catch (error) {
     console.error(
-      "LOGIN API ERROR RESPONSE:",
-      error.response?.data
-    );
-
-    console.error(
-      "LOGIN API ERROR MESSAGE:",
-      error.message
+      "LOGIN API ERROR:",
+      error.response?.data || error.message
     );
 
     throw error;
