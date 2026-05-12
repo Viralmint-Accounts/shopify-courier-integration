@@ -1,5 +1,8 @@
 const axios = require("axios");
 
+/*
+CREATE SHIPMENT
+*/
 async function createShipment(
   order,
   token
@@ -110,7 +113,7 @@ async function createShipment(
       );
 
     console.log(
-      "COURIER RESPONSE:",
+      "SHIPMENT RESPONSE:",
       JSON.stringify(
         response.data,
         null,
@@ -118,7 +121,7 @@ async function createShipment(
       )
     );
 
-    return response.data;
+    return documentRef;
   } catch (error) {
     console.error(
       "COURIER API ERROR:",
@@ -130,6 +133,133 @@ async function createShipment(
   }
 }
 
+/*
+GET AWB
+*/
+async function getAWB(
+  token,
+  documentRef,
+  orderNumber
+) {
+  try {
+    const response =
+      await axios.post(
+        "https://customerapi.sevasetu.in/index.php/clientbooking_v5/getshipmentdetails",
+        {
+          data: {
+            IsDP: "0",
+
+            ClientRefID:
+              process.env
+                .CLIENT_ID,
+
+            bookingdate:
+              new Date()
+                .toISOString()
+                .split("T")[0],
+          },
+        },
+        {
+          headers: {
+            token,
+
+            clientcode:
+              process.env
+                .CLIENT_ID,
+
+            "Content-Type":
+              "application/json",
+          },
+        }
+      );
+
+    console.log(
+      "AWB RESPONSE:",
+      JSON.stringify(
+        response.data,
+        null,
+        2
+      )
+    );
+
+    if (
+      !response.data.bookingdata
+    ) {
+      return null;
+    }
+
+    const shipment =
+      response.data.bookingdata.find(
+        (item) =>
+          item.BookingRefNo ==
+            documentRef ||
+          item.OrderNo ==
+            orderNumber
+      );
+
+    if (!shipment) {
+      return null;
+    }
+
+    return (
+      shipment.TrackingNo ||
+      shipment.SmcsAwbNo
+    );
+  } catch (error) {
+    console.error(
+      "AWB FETCH ERROR:",
+      error.response?.data ||
+        error.message
+    );
+
+    return null;
+  }
+}
+
+/*
+RETRY AWB
+*/
+async function getAWBWithRetry(
+  token,
+  documentRef,
+  orderNumber
+) {
+  let attempts = 10;
+
+  while (attempts > 0) {
+    console.log(
+      `CHECKING AWB... ${attempts}`
+    );
+
+    const awb = await getAWB(
+      token,
+      documentRef,
+      orderNumber
+    );
+
+    if (awb) {
+      console.log(
+        "AWB FOUND:",
+        awb
+      );
+
+      return awb;
+    }
+
+    /*
+    WAIT 15 SECONDS
+    */
+    await new Promise((resolve) =>
+      setTimeout(resolve, 15000)
+    );
+
+    attempts--;
+  }
+
+  return null;
+}
+
 module.exports = {
   createShipment,
+  getAWBWithRetry,
 };

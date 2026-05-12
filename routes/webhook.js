@@ -6,6 +6,7 @@ const { getToken } = require("../utils/tokenManager");
 
 const {
   createShipment,
+  getAWBWithRetry,
 } = require("../services/courierService");
 
 const {
@@ -36,9 +37,6 @@ WEBHOOK
 */
 router.post("/", async (req, res) => {
   try {
-    /*
-    Verify Shopify Webhook
-    */
     const isValid = verifyShopifyWebhook(req);
 
     if (!isValid) {
@@ -53,38 +51,31 @@ router.post("/", async (req, res) => {
     console.log("=================================");
 
     /*
-    STEP 1: LOGIN
+    LOGIN
     */
     const token = await getToken();
 
     console.log("TOKEN GENERATED");
 
     /*
-    STEP 2: CREATE SHIPMENT
+    CREATE SHIPMENT
     */
-    const shipmentResponse =
+    const documentRef =
       await createShipment(order, token);
 
-    console.log(
-      "SHIPMENT RESPONSE:",
-      JSON.stringify(
-        shipmentResponse,
-        null,
-        2
-      )
-    );
-
     /*
-    STEP 3: GET TRACKING NUMBER
+    FETCH AWB
     */
     const trackingNumber =
-      shipmentResponse?.TrackingNo ||
-      shipmentResponse?.SmcsAwbNo ||
-      shipmentResponse?.AWBNo;
+      await getAWBWithRetry(
+        token,
+        documentRef,
+        order.order_number
+      );
 
     if (!trackingNumber) {
       throw new Error(
-        "Tracking number not found"
+        "AWB not generated"
       );
     }
 
@@ -94,7 +85,7 @@ router.post("/", async (req, res) => {
     );
 
     /*
-    STEP 4: UPDATE SHOPIFY
+    UPDATE SHOPIFY
     */
     await fulfillOrder(
       order.id,
