@@ -1,5 +1,9 @@
 const axios = require("axios");
 
+const {
+  getToken,
+} = require("../utils/tokenManager");
+
 /*
 CREATE SHIPMENT
 */
@@ -137,11 +141,20 @@ async function createShipment(
 GET AWB
 */
 async function getAWB(
-  token,
   documentRef,
   orderNumber
 ) {
   try {
+    /*
+    NEW TOKEN EVERY TIME
+    */
+    const freshToken =
+      await getToken();
+
+    console.log(
+      "NEW TOKEN GENERATED FOR AWB CHECK"
+    );
+
     const response =
       await axios.post(
         "https://customerapi.sevasetu.in/index.php/clientbooking_v5/getshipmentdetails",
@@ -161,7 +174,8 @@ async function getAWB(
         },
         {
           headers: {
-            token,
+            token:
+              freshToken,
 
             clientcode:
               process.env
@@ -181,6 +195,16 @@ async function getAWB(
         2
       )
     );
+
+    /*
+    AUTH FAILED
+    */
+    if (
+      response.data.success ===
+      "0"
+    ) {
+      return null;
+    }
 
     if (
       !response.data.bookingdata
@@ -213,6 +237,11 @@ async function getAWB(
       return null;
     }
 
+    console.log(
+      "AWB FOUND:",
+      awb
+    );
+
     return awb;
   } catch (error) {
     console.error(
@@ -229,7 +258,6 @@ async function getAWB(
 RETRY AWB
 */
 async function getAWBWithRetry(
-  token,
   documentRef,
   orderNumber
 ) {
@@ -241,17 +269,11 @@ async function getAWBWithRetry(
     );
 
     const awb = await getAWB(
-      token,
       documentRef,
       orderNumber
     );
 
     if (awb) {
-      console.log(
-        "AWB FOUND:",
-        awb
-      );
-
       return awb;
     }
 

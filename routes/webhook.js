@@ -68,9 +68,8 @@ router.post("/", async (req, res) => {
     */
     const trackingNumber =
       await getAWBWithRetry(
-        token,
-        documentRef,
-        order.order_number
+  documentRef,
+  order.order_number
       );
 
     if (!trackingNumber) {
