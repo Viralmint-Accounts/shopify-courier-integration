@@ -45,9 +45,6 @@ async function getToken() {
       )
     );
 
-    /*
-    VALIDATE TOKEN
-    */
     if (
       !response.data ||
       response.data.success !==

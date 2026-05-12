@@ -201,10 +201,19 @@ async function getAWB(
       return null;
     }
 
-    return (
+    const awb =
       shipment.TrackingNo ||
-      shipment.SmcsAwbNo
-    );
+      shipment.SmcsAwbNo;
+
+    if (!awb) {
+      console.log(
+        "AWB STILL NOT GENERATED"
+      );
+
+      return null;
+    }
+
+    return awb;
   } catch (error) {
     console.error(
       "AWB FETCH ERROR:",
@@ -224,7 +233,7 @@ async function getAWBWithRetry(
   documentRef,
   orderNumber
 ) {
-  let attempts = 10;
+  let attempts = 40;
 
   while (attempts > 0) {
     console.log(
@@ -247,10 +256,10 @@ async function getAWBWithRetry(
     }
 
     /*
-    WAIT 15 SECONDS
+    WAIT 30 SECONDS
     */
     await new Promise((resolve) =>
-      setTimeout(resolve, 15000)
+      setTimeout(resolve, 30000)
     );
 
     attempts--;

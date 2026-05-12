@@ -51,20 +51,20 @@ router.post("/", async (req, res) => {
     console.log("=================================");
 
     /*
-    LOGIN
+    STEP 1: LOGIN
     */
     const token = await getToken();
 
     console.log("TOKEN GENERATED");
 
     /*
-    CREATE SHIPMENT
+    STEP 2: CREATE SHIPMENT
     */
     const documentRef =
       await createShipment(order, token);
 
     /*
-    FETCH AWB
+    STEP 3: FETCH AWB
     */
     const trackingNumber =
       await getAWBWithRetry(
@@ -85,7 +85,7 @@ router.post("/", async (req, res) => {
     );
 
     /*
-    UPDATE SHOPIFY
+    STEP 4: UPDATE SHOPIFY
     */
     await fulfillOrder(
       order.id,
