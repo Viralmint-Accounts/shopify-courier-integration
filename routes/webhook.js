@@ -79,10 +79,11 @@ console.log(
   "AWB background process started"
 );
 
-    return res.status(200).json({
-      success: true,
-      trackingNumber,
-    });
+return res.status(200).json({
+  success: true,
+  message:
+    "Shipment created. AWB polling started.",
+});
   } catch (error) {
     console.error("WEBHOOK ERROR");
 
