@@ -1,5 +1,7 @@
 const axios = require("axios");
-
+const {
+  fulfillOrder,
+} = require("./shopifyService");
 const {
   getToken,
 } = require("../utils/tokenManager");
@@ -259,7 +261,8 @@ RETRY AWB
 */
 async function getAWBWithRetry(
   documentRef,
-  orderNumber
+  orderNumber,
+  shopifyOrderId
 ) {
   let attempts = 40;
 
@@ -273,9 +276,19 @@ async function getAWBWithRetry(
       orderNumber
     );
 
-    if (awb) {
-      return awb;
-    }
+if (awb) {
+
+  await fulfillOrder(
+    shopifyOrderId,
+    awb
+  );
+
+  console.log(
+    "SHOPIFY UPDATED"
+  );
+
+  return awb;
+}
 
     /*
     WAIT 30 SECONDS

@@ -66,34 +66,18 @@ router.post("/", async (req, res) => {
     /*
     STEP 3: FETCH AWB
     */
-    const trackingNumber =
-      await getAWBWithRetry(
+  /*
+BACKGROUND AWB CHECK
+*/
+getAWBWithRetry(
   documentRef,
-  order.order_number
-      );
+  order.order_number,
+  order.id
+);
 
-    if (!trackingNumber) {
-      throw new Error(
-        "AWB not generated"
-      );
-    }
-
-    console.log(
-      "TRACKING NUMBER:",
-      trackingNumber
-    );
-
-    /*
-    STEP 4: UPDATE SHOPIFY
-    */
-    await fulfillOrder(
-      order.id,
-      trackingNumber
-    );
-
-    console.log(
-      "SHOPIFY FULFILLMENT COMPLETED"
-    );
+console.log(
+  "AWB background process started"
+);
 
     return res.status(200).json({
       success: true,
